@@ -19,3 +19,18 @@ class ProblemOutput(BaseModel):
 
     class Config:
         from_attributes = True
+
+class CreateUserProof(BaseModel):
+    problem_id: int
+    proof_text: str
+
+class UserProofOutput(BaseModel):
+    id: int
+    problem_id: int
+    proof_text: str
+    verdict: Optional[str]
+    confidence: Optional[float]
+    submitted_at: datetime
+
+    class Config:
+        from_attributes = True

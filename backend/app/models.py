@@ -16,8 +16,7 @@ class UserProof(Base):
     __tablename__ = "user_proofs"
     id = Column(Integer, primary_key=True, index=True)
     problem_id = Column(Integer, ForeignKey("problems.id"), nullable=False)
-    proof_type = Column(String, nullable=False)  # e.g., "code", "screenshot"
-    proof_val = Column(String, nullable=False)
+    proof_text = Column(String, nullable=False)  # e.g., "code", "screenshot"
     verdict = Column(String)
     confidence = Column(Float)
     submitted_at = Column(DateTime(timezone=True), server_default=func.now())
