@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import Problem
 from app.schemas import CreateProblem, ProblemOutput
+from app.deadlines import check_overdue_problems
+
 
 router = APIRouter()
 
@@ -32,3 +34,13 @@ def get_current_problem(db: Session = Depends(get_db)):
     )
 
     return problem
+
+
+@router.post("/check-deadlines")
+def check_deadlines(db: Session = Depends(get_db)):
+    """
+    Manaully triggering the deadline checker
+    V2 will likelt use cron and schedule it
+    """
+    updated_count = check_overdue_problems(db)
+    return {"message": "Checked deadlines", "problems_failed": updated_count}
