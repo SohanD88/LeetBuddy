@@ -4,12 +4,13 @@ from app.database import get_db
 from app.models import UserProof, Problem
 from app.schemas import CreateUserProof, UserProofOutput
 from app.verifier import verify_proof_text
+from app.auth import get_current_user
 
 
 router = APIRouter()
 @router.post("/", response_model=UserProofOutput)
-def submit_user_proof(proof: CreateUserProof, db: Session = Depends(get_db),):
-    problem = db.query(Problem).filter(Problem.id == proof.problem_id).first()
+def submit_user_proof(proof: CreateUserProof, db: Session = Depends(get_db), user_id: str = Depends(get_current_user)):
+    problem = db.query(Problem).filter(Problem.id == proof.problem_id).filter(Problem.user_id == user_id).first()
     if not problem:
         raise HTTPException(status_code = 404, detail = "Problem not found")
     
@@ -17,7 +18,8 @@ def submit_user_proof(proof: CreateUserProof, db: Session = Depends(get_db),):
         problem_id=proof.problem_id,
         proof_text=proof.proof_text,
         verdict = None,
-        confidence = None
+        confidence = None,
+        user_id=user_id
     )
 
     db.add(new_proof)
@@ -27,7 +29,7 @@ def submit_user_proof(proof: CreateUserProof, db: Session = Depends(get_db),):
     return new_proof
 
 @router.post("/verify/{proof_id}", response_model=UserProofOutput)
-def verify_user_proof(proof_id: int, db: Session = Depends(get_db),):
+def verify_user_proof(proof_id: int, db: Session = Depends(get_db), user_id: str = Depends(get_current_user)):
     """
     Docstring for verify_user_proof
     
@@ -38,7 +40,7 @@ def verify_user_proof(proof_id: int, db: Session = Depends(get_db),):
     4. Returns the updated proof
     """
 
-    proof = db.query(UserProof).filter(UserProof.id == proof_id).first()
+    proof = db.query(UserProof).filter(UserProof.id == proof_id).filter(UserProof.user_id == user_id).first()
     if not proof:
         raise HTTPException(status_code = 404, detail = "User proof not found")
     
@@ -46,7 +48,7 @@ def verify_user_proof(proof_id: int, db: Session = Depends(get_db),):
     proof.verdict = verdict
     proof.confidence = confidence
 
-    problem = db.query(Problem).filter(Problem.id == proof.problem_id).first()
+    problem = db.query(Problem).filter(Problem.id == proof.problem_id).filter(Problem.user_id == user_id).first()
 
     if verdict == "pass":
         problem.status = "completed"

@@ -16,6 +16,7 @@ class ProblemOutput(BaseModel):
     difficulty: str
     status: str
     created_at: datetime
+    user_id: str
 
     class Config:
         from_attributes = True
@@ -31,6 +32,7 @@ class UserProofOutput(BaseModel):
     verdict: Optional[str]
     confidence: Optional[float]
     submitted_at: datetime
+    user_id: str
 
     class Config:
         from_attributes = True

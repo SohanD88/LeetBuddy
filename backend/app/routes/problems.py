@@ -4,18 +4,20 @@ from app.database import get_db
 from app.models import Problem
 from app.schemas import CreateProblem, ProblemOutput
 from app.deadlines import check_overdue_problems
+from app.auth import get_current_user
 
 
 router = APIRouter()
 
 @router.post("/", response_model=ProblemOutput)
-def create_problem(problem: CreateProblem, db: Session = Depends(get_db),):
+def create_problem(problem: CreateProblem, db: Session = Depends(get_db), user_id: str = Depends(get_current_user)):
     new_problem = Problem(
         problem_slug=problem.problem_slug,
         problem_title=problem.problem_title,
         deadline=problem.deadline,
         difficulty=problem.difficulty,
-        status="pending"
+        status="pending",
+        user_id=user_id
     )
 
     db.add(new_problem)
@@ -25,9 +27,10 @@ def create_problem(problem: CreateProblem, db: Session = Depends(get_db),):
     return new_problem
 
 @router.get("/current", response_model = ProblemOutput)
-def get_current_problem(db: Session = Depends(get_db)):
+def get_current_problem(db: Session = Depends(get_db), user_id: str = Depends(get_current_user)):
     problem = (
         db.query(Problem)
+        .filter(Problem.user_id == user_id)
         .filter(Problem.status == "pending")
         .order_by(Problem.created_at.desc())
         .first()

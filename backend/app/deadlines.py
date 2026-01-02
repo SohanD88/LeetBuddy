@@ -15,6 +15,7 @@ def check_overdue_problems(db: Session) -> int:
         .filter(Problem.deadline != None)
         .filter(Problem.deadline < current)
         .filter(Problem.status == "pending")
+        .filter(Problem.user_id != None)
         .all()
     )
 
