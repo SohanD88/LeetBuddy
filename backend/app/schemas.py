@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
+from uuid import UUID
 
 class CreateProblem(BaseModel):
     problem_slug: str
@@ -16,7 +17,7 @@ class ProblemOutput(BaseModel):
     difficulty: str
     status: str
     created_at: datetime
-    user_id: str
+    user_id: UUID
 
     class Config:
         from_attributes = True
@@ -32,7 +33,7 @@ class UserProofOutput(BaseModel):
     verdict: Optional[str]
     confidence: Optional[float]
     submitted_at: datetime
-    user_id: str
+    user_id: UUID
 
     class Config:
         from_attributes = True

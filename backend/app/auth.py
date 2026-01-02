@@ -1,28 +1,19 @@
-from fastapi import Depends, HTTPException, Header
-import jwt
-from jwt import InvalidTokenError
-from app.settings import get_settings
+from fastapi import Header, HTTPException
 
-def get_current_user(authorization: str = Header(None)) -> str:
+def get_current_user_id(
+    x_user_id: str | None = Header(default=None),
+):
     """
-    Gets and verifies Supabase JWT
-    returns the users id if the user is authenticated
+    TEMP AUTH FOR V2.1 STEP 6
+
+    Uses x-user-id header to simulate authentication.
+    Allows testing user scoping without JWT complexity.
     """
 
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Invalid authorization header")
-    
-    token = authorization.split(" ", 1)[1]
-    settings = get_settings()
+    if not x_user_id:
+        raise HTTPException(
+            status_code=401,
+            detail="Missing x-user-id header"
+        )
 
-
-    try: 
-        payload = jwt.decode(token, settings.supabase_jwt_secret, algorithms=["HS256"], options ={"verify_aud": False})
-    except InvalidTokenError:
-        raise HTTPException(status_code=401, detail="Invalid token")
-    
-    user_id = payload.get("sub")
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Invalid token payload")
-    
-    return user_id
+    return x_user_id

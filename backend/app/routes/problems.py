@@ -4,13 +4,14 @@ from app.database import get_db
 from app.models import Problem
 from app.schemas import CreateProblem, ProblemOutput
 from app.deadlines import check_overdue_problems
-from app.auth import get_current_user
+from app.auth import get_current_user_id
+from fastapi import HTTPException
 
 
 router = APIRouter()
 
 @router.post("/", response_model=ProblemOutput)
-def create_problem(problem: CreateProblem, db: Session = Depends(get_db), user_id: str = Depends(get_current_user)):
+def create_problem(problem: CreateProblem, db: Session = Depends(get_db), user_id: str = Depends(get_current_user_id)):
     new_problem = Problem(
         problem_slug=problem.problem_slug,
         problem_title=problem.problem_title,
@@ -27,7 +28,7 @@ def create_problem(problem: CreateProblem, db: Session = Depends(get_db), user_i
     return new_problem
 
 @router.get("/current", response_model = ProblemOutput)
-def get_current_problem(db: Session = Depends(get_db), user_id: str = Depends(get_current_user)):
+def get_current_problem(db: Session = Depends(get_db), user_id: str = Depends(get_current_user_id)):
     problem = (
         db.query(Problem)
         .filter(Problem.user_id == user_id)
@@ -35,6 +36,8 @@ def get_current_problem(db: Session = Depends(get_db), user_id: str = Depends(ge
         .order_by(Problem.created_at.desc())
         .first()
     )
+    if not problem:
+        raise HTTPException(status_code=404, detail="No current problem found")
 
     return problem
 

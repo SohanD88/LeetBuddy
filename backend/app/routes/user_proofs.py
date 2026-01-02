@@ -4,12 +4,12 @@ from app.database import get_db
 from app.models import UserProof, Problem
 from app.schemas import CreateUserProof, UserProofOutput
 from app.verifier import verify_proof_text
-from app.auth import get_current_user
+from app.auth import get_current_user_id
 
 
 router = APIRouter()
 @router.post("/", response_model=UserProofOutput)
-def submit_user_proof(proof: CreateUserProof, db: Session = Depends(get_db), user_id: str = Depends(get_current_user)):
+def submit_user_proof(proof: CreateUserProof, db: Session = Depends(get_db), user_id: str = Depends(get_current_user_id)):
     problem = db.query(Problem).filter(Problem.id == proof.problem_id).filter(Problem.user_id == user_id).first()
     if not problem:
         raise HTTPException(status_code = 404, detail = "Problem not found")
@@ -29,7 +29,7 @@ def submit_user_proof(proof: CreateUserProof, db: Session = Depends(get_db), use
     return new_proof
 
 @router.post("/verify/{proof_id}", response_model=UserProofOutput)
-def verify_user_proof(proof_id: int, db: Session = Depends(get_db), user_id: str = Depends(get_current_user)):
+def verify_user_proof(proof_id: int, db: Session = Depends(get_db), user_id: str = Depends(get_current_user_id)):
     """
     Docstring for verify_user_proof
     

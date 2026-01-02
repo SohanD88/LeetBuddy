@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, Float, ForeignKey
 from sqlalchemy.sql import func
 from app.database import Base
+from sqlalchemy.dialects.postgresql import UUID
 
 class Problem(Base):
     __tablename__ = "problems"
@@ -11,7 +12,7 @@ class Problem(Base):
     deadline = Column(DateTime(timezone=True), nullable=True)
     status = Column(String, nullable=False, default="pending")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    user_id = Column(String, nullable=False, index=True)
+    user_id = Column(UUID(as_uuid=True), nullable=False, index=True)
 
 class UserProof(Base):
     __tablename__ = "user_proofs"
@@ -21,4 +22,4 @@ class UserProof(Base):
     verdict = Column(String)
     confidence = Column(Float)
     submitted_at = Column(DateTime(timezone=True), server_default=func.now())
-    user_id = Column(String, nullable=False, index=True)
+    user_id = Column(UUID(as_uuid=True), nullable=False, index=True)
