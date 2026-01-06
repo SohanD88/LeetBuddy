@@ -5,21 +5,53 @@ from app.models import UserProof, Problem
 from app.schemas import CreateUserProof, UserProofOutput
 from app.verifier import verify_proof_text
 from app.auth import get_current_user_id
+from app.utils.hash import compute_hash
 
 
 router = APIRouter()
 @router.post("/", response_model=UserProofOutput)
-def submit_user_proof(proof: CreateUserProof, db: Session = Depends(get_db), user_id: str = Depends(get_current_user_id)):
-    problem = db.query(Problem).filter(Problem.id == proof.problem_id).filter(Problem.user_id == user_id).first()
+def submit_user_proof(
+    proof: CreateUserProof,
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id)
+):
+    problem = (
+        db.query(Problem)
+        .filter(Problem.id == proof.problem_id)
+        .filter(Problem.user_id == user_id)
+        .first()
+    )
     if not problem:
-        raise HTTPException(status_code = 404, detail = "Problem not found")
-    
+        raise HTTPException(status_code=404, detail="Problem not found")
+
+    if not proof.proof_text:
+        raise HTTPException(
+            status_code=400,
+            detail="Proof text is required for this proof type"
+        )
+
+    proof_hash = compute_hash(proof.proof_text)
+
+    existing_proof = (
+        db.query(UserProof)
+        .filter(UserProof.proof_hash == proof_hash)
+        .first()
+    )
+    if existing_proof:
+        raise HTTPException(
+            status_code=400,
+            detail="This proof has already been submitted"
+        )
+
     new_proof = UserProof(
         problem_id=proof.problem_id,
+        proof_type=proof.proof_type,
         proof_text=proof.proof_text,
-        verdict = None,
-        confidence = None,
-        user_id=user_id
+        proof_hash=proof_hash,
+        proof_metadata=None,
+        verdict=None,
+        confidence=None,
+        user_id=user_id,
     )
 
     db.add(new_proof)

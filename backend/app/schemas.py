@@ -25,11 +25,13 @@ class ProblemOutput(BaseModel):
 class CreateUserProof(BaseModel):
     problem_id: int
     proof_text: str
+    proof_type: str
 
 class UserProofOutput(BaseModel):
     id: int
     problem_id: int
     proof_text: str
+    proof_type: str
     verdict: Optional[str]
     confidence: Optional[float]
     submitted_at: datetime
